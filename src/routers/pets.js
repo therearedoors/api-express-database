@@ -8,7 +8,7 @@ const hasAtLeastOneQuery = queryCount => queryCount>0
 const handleWhereQuery = (baseQuery,queries,values) => {
     let whereQuery = ' WHERE'
     let queryCount = 0
-    for (key in queries){
+    for (const key in queries){
         if (queries[key]){
             if (hasAtLeastOneQuery(queryCount)){
                 whereQuery += ' AND'
@@ -24,11 +24,11 @@ const handleWhereQuery = (baseQuery,queries,values) => {
 
 petsRouter.get("/", (req,res) => {
     const baseQuery = 'SELECT * FROM pets'
+    console.log(req.query)
     const values = []
     const whereQuery = handleWhereQuery(baseQuery,req.query,values)
     db.query(whereQuery,values)
     .then(dataBaseRes => {
-        console.log(dataBaseRes)
         res.json({pets:dataBaseRes.rows})
     })
     .catch(e => {
@@ -57,6 +57,34 @@ petsRouter.get("/:id", (req,res) => {
 })
 
 petsRouter.post("/", (req,res) => {
+    const isValidString = datum => typeof(datum) === 'string' && datum.length > 0 && datum.length < 256
+    const isValidInt = datum => Number.isInteger(datum)
+    const isValidBoolean = datum => datum === true || datum === false
+    if (!isValidString(req.body.name)){
+        res.status(400)
+        res.json({error:'Invalid name'})
+        return
+    }
+    if (!isValidInt(req.body.age)){
+        res.status(400)
+        res.json({error:'Invalid age'})
+        return
+    }
+    if (!isValidString(req.body.type)){
+        res.status(400)
+        res.json({error:'Invalid type'})
+        return
+    }
+    if (!isValidString(req.body.breed)){
+        res.status(400)
+        res.json({error:'Invalid breed'})
+        return
+    }
+    if (!isValidBoolean(req.body.microchip)){
+        res.status(400)
+        res.json({error:'Invalid microchip'})
+        return
+    }
     const sql = {
         text: 'INSERT INTO pets(name,age,type,breed,microchip) VALUES($1, $2, $3, $4, $5) RETURNING *',
         values: [req.body.name,req.body.age,req.body.type,req.body.breed,req.body.microchip]
